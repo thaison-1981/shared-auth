@@ -5,14 +5,17 @@
   "exports": {
     "./server": {
       "import": "./dist/server/index.js",
+      "require": "./dist/server/index.cjs",
       "types": "./dist/server/index.d.ts"
     },
     "./client": {
       "import": "./dist/client/index.js",
+      "require": "./dist/client/index.cjs",
       "types": "./dist/client/index.d.ts"
     },
     "./schema": {
       "import": "./dist/schema.js",
+      "require": "./dist/schema.cjs",
       "types": "./dist/schema.d.ts"
     }
   },

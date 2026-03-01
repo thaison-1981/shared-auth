@@ -6,7 +6,7 @@ export default defineConfig({
     "client/index": "src/client/index.ts",
     schema: "src/schema.ts",
   },
-  format: ["esm"],
+  format: ["esm", "cjs"],
   dts: true,
   clean: true,
   external: [
