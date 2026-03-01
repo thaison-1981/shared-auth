@@ -1,5 +1,7 @@
+import * as qs from 'qs';
+import * as express_serve_static_core from 'express-serve-static-core';
 import passport from 'passport';
-import { Express, RequestHandler } from 'express';
+import { RequestHandler, Express } from 'express';
 
 interface IAuthStorage {
     getUser(id: string): Promise<any | undefined>;
@@ -44,6 +46,7 @@ interface AuthConfig {
     /** Data to pass to authStorage.upsertUser from Google profile. Apps can customize. */
     buildUpsertData?: (profile: passport.Profile) => Record<string, any>;
 }
+declare function getSession(pool: any): RequestHandler<express_serve_static_core.ParamsDictionary, any, any, qs.ParsedQs, Record<string, any>>;
 declare function setupAuth(app: Express, config: AuthConfig): Promise<void>;
 
 /**
@@ -65,4 +68,4 @@ declare function createIsAdmin(checkFn: (user: any) => boolean): RequestHandler;
  */
 declare function createAuthRoutes(app: Express, isAuthenticated: RequestHandler, stripFields?: string[]): void;
 
-export { type AuthConfig, type GoogleLoginInfo, type IAuthStorage, createAuthRoutes, createAuthStorage, createIsAdmin, createIsAuthenticated, setupAuth };
+export { type AuthConfig, type GoogleLoginInfo, type IAuthStorage, createAuthRoutes, createAuthStorage, createIsAdmin, createIsAuthenticated, getSession, setupAuth };

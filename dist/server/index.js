@@ -206,5 +206,6 @@ export {
   createAuthStorage,
   createIsAdmin,
   createIsAuthenticated,
+  getSession,
   setupAuth
 };
