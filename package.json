@@ -4,19 +4,19 @@
   "type": "module",
   "exports": {
     "./server": {
+      "types": "./dist/server/index.d.ts",
       "import": "./dist/server/index.js",
-      "require": "./dist/server/index.cjs",
-      "types": "./dist/server/index.d.ts"
+      "require": "./dist/server/index.cjs"
     },
     "./client": {
+      "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js",
-      "require": "./dist/client/index.cjs",
-      "types": "./dist/client/index.d.ts"
+      "require": "./dist/client/index.cjs"
     },
     "./schema": {
+      "types": "./dist/schema.d.ts",
       "import": "./dist/schema.js",
-      "require": "./dist/schema.cjs",
-      "types": "./dist/schema.d.ts"
+      "require": "./dist/schema.cjs"
     }
   },
   "scripts": {
