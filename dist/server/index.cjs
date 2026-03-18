@@ -112,7 +112,7 @@ async function setupAuth(app, config) {
       import_passport.default.authenticate("google", {
         scope: scopes,
         accessType: "offline",
-        prompt: "consent"
+        prompt: "select_account"
       })
     );
     app.get(

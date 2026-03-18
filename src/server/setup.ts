@@ -119,7 +119,7 @@ export async function setupAuth(app: Express, config: AuthConfig) {
       passport.authenticate("google", {
         scope: scopes,
         accessType: "offline",
-        prompt: "consent",
+        prompt: "select_account",
       } as any)
     );
 
