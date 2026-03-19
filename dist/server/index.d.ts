@@ -45,6 +45,8 @@ interface AuthConfig {
     };
     /** Data to pass to authStorage.upsertUser from Google profile. Apps can customize. */
     buildUpsertData?: (profile: passport.Profile) => Record<string, any>;
+    /** Restrict login to these email domains (e.g., ["smartosc.com"]). Empty = allow all. */
+    allowedDomains?: string[];
 }
 declare function getSession(pool: any): RequestHandler<express_serve_static_core.ParamsDictionary, any, any, qs.ParsedQs, Record<string, any>>;
 declare function setupAuth(app: Express, config: AuthConfig): Promise<void>;

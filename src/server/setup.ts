@@ -32,6 +32,8 @@ export interface AuthConfig {
   devLogin?: { id: string; email: string; firstName: string; lastName: string };
   /** Data to pass to authStorage.upsertUser from Google profile. Apps can customize. */
   buildUpsertData?: (profile: passport.Profile) => Record<string, any>;
+  /** Restrict login to these email domains (e.g., ["smartosc.com"]). Empty = allow all. */
+  allowedDomains?: string[];
 }
 
 export function getSession(pool: any) {
@@ -83,6 +85,15 @@ export async function setupAuth(app: Express, config: AuthConfig) {
         async (accessToken, refreshToken, profile, done) => {
           try {
             const email = profile.emails?.[0]?.value || "";
+
+            // Domain restriction
+            if (config.allowedDomains?.length) {
+              const domain = email.split("@")[1]?.toLowerCase() || "";
+              if (!config.allowedDomains.some(d => d.toLowerCase() === domain)) {
+                return done(null, false, { message: `Login restricted to ${config.allowedDomains.join(", ")} emails` } as any);
+              }
+            }
+
             const upsertData = config.buildUpsertData
               ? config.buildUpsertData(profile)
               : {
@@ -125,10 +136,19 @@ export async function setupAuth(app: Express, config: AuthConfig) {
 
     app.get(
       "/api/auth/google/callback",
-      passport.authenticate("google", {
-        failureRedirect: "/",
-        successRedirect: "/",
-      })
+      (req: any, res: any, next: any) => {
+        passport.authenticate("google", (err: any, user: any, info: any) => {
+          if (err) return next(err);
+          if (!user) {
+            const msg = info?.message || "Login failed";
+            return res.redirect(`/login?error=${encodeURIComponent(msg)}`);
+          }
+          req.login(user, (loginErr: any) => {
+            if (loginErr) return next(loginErr);
+            res.redirect("/");
+          });
+        })(req, res, next);
+      }
     );
   } else {
     console.warn(

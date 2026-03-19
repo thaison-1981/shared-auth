@@ -88,6 +88,12 @@ async function setupAuth(app, config) {
         async (accessToken, refreshToken, profile, done) => {
           try {
             const email = profile.emails?.[0]?.value || "";
+            if (config.allowedDomains?.length) {
+              const domain = email.split("@")[1]?.toLowerCase() || "";
+              if (!config.allowedDomains.some((d) => d.toLowerCase() === domain)) {
+                return done(null, false, { message: `Login restricted to ${config.allowedDomains.join(", ")} emails` });
+              }
+            }
             const upsertData = config.buildUpsertData ? config.buildUpsertData(profile) : {
               id: profile.id,
               email,
@@ -117,10 +123,19 @@ async function setupAuth(app, config) {
     );
     app.get(
       "/api/auth/google/callback",
-      import_passport.default.authenticate("google", {
-        failureRedirect: "/",
-        successRedirect: "/"
-      })
+      (req, res, next) => {
+        import_passport.default.authenticate("google", (err, user, info) => {
+          if (err) return next(err);
+          if (!user) {
+            const msg = info?.message || "Login failed";
+            return res.redirect(`/login?error=${encodeURIComponent(msg)}`);
+          }
+          req.login(user, (loginErr) => {
+            if (loginErr) return next(loginErr);
+            res.redirect("/");
+          });
+        })(req, res, next);
+      }
     );
   } else {
     console.warn(
