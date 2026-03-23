@@ -27,6 +27,21 @@ export function createAuthStorage(db: any, usersTable: any): IAuthStorage {
     },
 
     async upsertUser(userData: any) {
+      // Check if a user with this email already exists but with a different ID
+      // (e.g., seeded from HubSpot import or manually created, then logs in via Google OAuth).
+      // Keep the existing ID to preserve foreign key references.
+      if (userData.email) {
+        const existing = await this.getUserByEmail(userData.email);
+        if (existing && existing.id !== userData.id) {
+          const { id, ...profileFields } = userData;
+          const [user] = await db
+            .update(usersTable)
+            .set({ ...profileFields, updatedAt: new Date() })
+            .where(eq(usersTable.id, existing.id))
+            .returning();
+          return user;
+        }
+      }
       const [user] = await db
         .insert(usersTable)
         .values(userData)

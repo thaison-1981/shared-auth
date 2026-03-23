@@ -192,6 +192,14 @@ function createAuthStorage(db, usersTable) {
       return user;
     },
     async upsertUser(userData) {
+      if (userData.email) {
+        const existing = await this.getUserByEmail(userData.email);
+        if (existing && existing.id !== userData.id) {
+          const { id, ...profileFields } = userData;
+          const [user2] = await db.update(usersTable).set({ ...profileFields, updatedAt: /* @__PURE__ */ new Date() }).where(eq3(usersTable.id, existing.id)).returning();
+          return user2;
+        }
+      }
       const [user] = await db.insert(usersTable).values(userData).onConflictDoUpdate({
         target: usersTable.id,
         set: { ...userData, updatedAt: /* @__PURE__ */ new Date() }
