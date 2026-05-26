@@ -4,7 +4,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { eq } from "drizzle-orm";
-function getSession(pool) {
+function getSession(pool, opts = {}) {
   const sessionTtl = 7 * 24 * 60 * 60 * 1e3;
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -26,13 +26,14 @@ function getSession(pool) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: sessionTtl
+      maxAge: sessionTtl,
+      ...opts.cookieDomain ? { domain: opts.cookieDomain } : {}
     }
   });
 }
 async function setupAuth(app, config) {
   const { pool, db, usersTable, authStorage, stripFields = [] } = config;
-  app.use(getSession(pool));
+  app.use(getSession(pool, { cookieDomain: config.cookieDomain }));
   app.use(passport.initialize());
   app.use(passport.session());
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {

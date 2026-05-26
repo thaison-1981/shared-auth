@@ -47,8 +47,12 @@ interface AuthConfig {
     buildUpsertData?: (profile: passport.Profile) => Record<string, any>;
     /** Restrict login to these email domains (e.g., ["smartosc.com"]). Empty = allow all. */
     allowedDomains?: string[];
+    /** Cookie Domain attribute. Set to `.example.com` to share session across subdomains. */
+    cookieDomain?: string;
 }
-declare function getSession(pool: any): RequestHandler<express_serve_static_core.ParamsDictionary, any, any, qs.ParsedQs, Record<string, any>>;
+declare function getSession(pool: any, opts?: {
+    cookieDomain?: string;
+}): RequestHandler<express_serve_static_core.ParamsDictionary, any, any, qs.ParsedQs, Record<string, any>>;
 declare function setupAuth(app: Express, config: AuthConfig): Promise<void>;
 
 /**

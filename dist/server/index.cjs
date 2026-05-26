@@ -45,7 +45,7 @@ var import_passport_google_oauth20 = require("passport-google-oauth20");
 var import_express_session = __toESM(require("express-session"), 1);
 var import_connect_pg_simple = __toESM(require("connect-pg-simple"), 1);
 var import_drizzle_orm = require("drizzle-orm");
-function getSession(pool) {
+function getSession(pool, opts = {}) {
   const sessionTtl = 7 * 24 * 60 * 60 * 1e3;
   const pgStore = (0, import_connect_pg_simple.default)(import_express_session.default);
   const sessionStore = new pgStore({
@@ -67,13 +67,14 @@ function getSession(pool) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: sessionTtl
+      maxAge: sessionTtl,
+      ...opts.cookieDomain ? { domain: opts.cookieDomain } : {}
     }
   });
 }
 async function setupAuth(app, config) {
   const { pool, db, usersTable, authStorage, stripFields = [] } = config;
-  app.use(getSession(pool));
+  app.use(getSession(pool, { cookieDomain: config.cookieDomain }));
   app.use(import_passport.default.initialize());
   app.use(import_passport.default.session());
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {

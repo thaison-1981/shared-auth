@@ -34,9 +34,11 @@ export interface AuthConfig {
   buildUpsertData?: (profile: passport.Profile) => Record<string, any>;
   /** Restrict login to these email domains (e.g., ["smartosc.com"]). Empty = allow all. */
   allowedDomains?: string[];
+  /** Cookie Domain attribute. Set to `.example.com` to share session across subdomains. */
+  cookieDomain?: string;
 }
 
-export function getSession(pool: any) {
+export function getSession(pool: any, opts: { cookieDomain?: string } = {}) {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
@@ -59,6 +61,7 @@ export function getSession(pool: any) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: sessionTtl,
+      ...(opts.cookieDomain ? { domain: opts.cookieDomain } : {}),
     },
   });
 }
@@ -66,7 +69,7 @@ export function getSession(pool: any) {
 export async function setupAuth(app: Express, config: AuthConfig) {
   const { pool, db, usersTable, authStorage, stripFields = [] } = config;
 
-  app.use(getSession(pool));
+  app.use(getSession(pool, { cookieDomain: config.cookieDomain }));
   app.use(passport.initialize());
   app.use(passport.session());
 
