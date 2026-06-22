@@ -131,9 +131,12 @@ async function setupAuth(app, config) {
             const msg = info?.message || "Login failed";
             return res.redirect(`/login?error=${encodeURIComponent(msg)}`);
           }
-          req.login(user, (loginErr) => {
-            if (loginErr) return next(loginErr);
-            res.redirect("/");
+          req.session.regenerate((regenErr) => {
+            if (regenErr) return next(regenErr);
+            req.login(user, (loginErr) => {
+              if (loginErr) return next(loginErr);
+              res.redirect("/");
+            });
           });
         })(req, res, next);
       }
@@ -154,9 +157,12 @@ async function setupAuth(app, config) {
         firstName: config.devLogin.firstName,
         lastName: config.devLogin.lastName
       });
-      req.login(user, (err) => {
-        if (err) return res.status(500).json({ message: "Login failed" });
-        res.json(user);
+      req.session.regenerate((regenErr) => {
+        if (regenErr) return res.status(500).json({ message: "Login failed" });
+        req.login(user, (err) => {
+          if (err) return res.status(500).json({ message: "Login failed" });
+          res.json(user);
+        });
       });
     });
   }

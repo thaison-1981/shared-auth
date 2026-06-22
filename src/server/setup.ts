@@ -146,9 +146,16 @@ export async function setupAuth(app: Express, config: AuthConfig) {
             const msg = info?.message || "Login failed";
             return res.redirect(`/login?error=${encodeURIComponent(msg)}`);
           }
-          req.login(user, (loginErr: any) => {
-            if (loginErr) return next(loginErr);
-            res.redirect("/");
+          // Regenerate the session BEFORE login to prevent session fixation —
+          // any pre-existing session id (planted by an attacker via XSS, MITM,
+          // or shared device) is discarded; the authenticated user gets a
+          // fresh id. req.session.regenerate is provided by express-session.
+          req.session.regenerate((regenErr: any) => {
+            if (regenErr) return next(regenErr);
+            req.login(user, (loginErr: any) => {
+              if (loginErr) return next(loginErr);
+              res.redirect("/");
+            });
           });
         })(req, res, next);
       }
@@ -175,9 +182,12 @@ export async function setupAuth(app: Express, config: AuthConfig) {
         firstName: config.devLogin!.firstName,
         lastName: config.devLogin!.lastName,
       });
-      req.login(user, (err) => {
-        if (err) return res.status(500).json({ message: "Login failed" });
-        res.json(user);
+      (req as any).session.regenerate((regenErr: any) => {
+        if (regenErr) return res.status(500).json({ message: "Login failed" });
+        req.login(user, (err) => {
+          if (err) return res.status(500).json({ message: "Login failed" });
+          res.json(user);
+        });
       });
     });
   }
